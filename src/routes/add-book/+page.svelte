@@ -12,6 +12,7 @@
   let context = '';
   let coverColor = BOOK_COLORS[0].value;
   let saving = false;
+  let error = '';
   let editId: string | null = null;
 
   onMount(async () => {
@@ -34,39 +35,49 @@
   async function save() {
     if (!title.trim()) return;
     saving = true;
+    error = '';
 
-    const now = Date.now();
-    const book: Book = {
-      id: editId ?? uuid(),
-      title: title.trim(),
-      author: author.trim() || undefined,
-      context: context.trim() || undefined,
-      coverColor,
-      createdAt: now,
-      updatedAt: now,
-      archived: false,
-    };
+    try {
+      const now = Date.now();
+      const book: Book = {
+        id: editId ?? uuid(),
+        title: title.trim(),
+        author: author.trim() || undefined,
+        context: context.trim() || undefined,
+        coverColor,
+        createdAt: now,
+        updatedAt: now,
+        archived: false,
+      };
 
-    if (editId) {
-      const existing = await getBook(editId);
-      if (existing) {
-        book.createdAt = existing.createdAt;
-        book.archived = existing.archived;
+      if (editId) {
+        const existing = await getBook(editId);
+        if (existing) {
+          book.createdAt = existing.createdAt;
+          book.archived = existing.archived;
+        }
       }
-    }
 
-    await saveBook(book);
-    goto(editId ? `${base}/library/${editId}` : `${base}/library`);
+      await saveBook(book);
+      goto(editId ? `${base}/library/${editId}` : `${base}/library`);
+    } catch (e) {
+      error = 'Failed to save. Please try again.';
+      saving = false;
+    }
   }
 
   async function archive() {
     if (!editId) return;
-    const book = await getBook(editId);
-    if (!book) return;
-    book.archived = !book.archived;
-    book.updatedAt = Date.now();
-    await saveBook(book);
-    goto(base + '/library');
+    try {
+      const book = await getBook(editId);
+      if (!book) return;
+      book.archived = !book.archived;
+      book.updatedAt = Date.now();
+      await saveBook(book);
+      goto(base + '/library');
+    } catch (e) {
+      error = 'Failed to archive. Please try again.';
+    }
   }
 
   $: isEdit = !!editId;
@@ -125,6 +136,10 @@
       <p class="font-semibold">{title || 'Book Title'}</p>
       {#if author}<p class="text-sm opacity-70">{author}</p>{/if}
     </div>
+
+    {#if error}
+      <p class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
+    {/if}
 
     <button type="submit" class="btn-primary w-full" disabled={saving || !title.trim()}>
       {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Book'}
