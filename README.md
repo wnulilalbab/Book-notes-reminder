@@ -197,68 +197,53 @@ interface DailyLog {
 
 ---
 
-## AI Features
+## AI Feature — Context Lens
 
-AI in this app has one job: **help you remember and apply what you read**. It never writes notes for you or summarizes books — that processing is yours to do, and it's where the real value is.
+The only AI feature in scope right now, solving one specific problem:
 
-All AI features are opt-in, clearly labeled, and work via a configurable API key (Claude API). They degrade gracefully to manual mode if no key is set.
+> You wrote a short note months ago. You read it again today. The words are there but the meaning has faded — why did this matter? What was the book saying around this? What did you mean?
 
----
-
-### Tier 1 — Low friction, high value (M5)
-
-#### Note type auto-suggestion
-As you type a note, AI reads the content and highlights whether it sounds like a **reminder** ("always negotiate in writing") or an **action item** ("set a weekly review on Sundays"). You can accept or ignore the suggestion. Saves a tap and subtly trains better note habits.
-
-#### Vague action item nudge
-When you save an action item that's broad or abstract ("be more focused"), AI asks a single follow-up: *"Can you make this more specific — what would doing this look like tomorrow?"* It doesn't block saving; it just prompts. Over time this improves note quality without a lesson.
-
-#### Book recall helper
-When adding a book you already read, AI offers a brief neutral description of the book's core premise — 2 sentences, no spoilers of your own insights. Useful if you read it months ago and need a moment to jog your memory before you start capturing notes.
+Write mode stays completely unchanged — no extra fields, no prompts, no friction. The AI earns its place entirely on the **read side**.
 
 ---
 
-### Tier 2 — The differentiating features (M6)
+### How it works
 
-#### Cross-book insight connections
-When you add a note, AI checks your existing library and surfaces related notes from other books — shown as a subtle "Related from [Book]" chip below the new note. Example: you add a note about compounding habits from *Atomic Habits* and the app surfaces your note about patience from *The Psychology of Money*.
+On any note card (in the feed or on the book detail page), a small **"?"** button appears. Tap it and AI generates a **Context Lens** — a short, on-demand explanation using only what's already stored: your note text, the book title, and the author.
 
-This is the feature that makes the whole library feel like a living knowledge base instead of separate silos.
+The Context Lens shows three things:
 
-#### Weekly synthesis
-Every Sunday (or after 5+ notes in a week), AI generates a 2–3 sentence personal synthesis based only on notes you added that week. Example: *"This week your notes touched on decision-making under uncertainty and the cost of context-switching. A thread: protecting attention is as important as managing time."*
-
-This is shown as a special card in the feed — clearly AI-generated, dismissible, never stored as a note.
-
-#### Reflection nudge for stale action items
-Action items you haven't marked done after 2 weeks get a gentle AI-generated check-in: *"You noted 'start a 5-minute morning journal' 18 days ago — how's that going? Want to adjust it or break it into a smaller step?"*. One prompt per item, not repeated.
-
----
-
-### Tier 3 — Stretch / future
-
-#### Natural language search
-"Show me everything I noted about sleep" finds relevant notes even if the word "sleep" doesn't appear — using semantic similarity. Valuable once the library exceeds ~30 books.
-
-#### Feed personalization
-AI learns which cards you engage with vs. snooze and adjusts the rotation weights accordingly. Fully local, no data sent anywhere.
-
----
-
-### What AI will NOT do
-
-| Tempting but wrong | Why |
+| | |
 |---|---|
-| Summarize the book for you | Your own reading and processing is the point. Pre-made summaries undercut it. |
-| Auto-generate notes from a book title | Same reason. Notes must come from you. |
-| Rewrite or "improve" your notes | Your words are the anchor. Polishing them breaks the recall cue. |
-| Replace the streak/notification system | Behavioral change needs friction reduction, not clever content. |
+| **What this means** | A 1–2 sentence plain-language explanation of the concept as the book uses it |
+| **Why it matters** | The author's core argument for why this is worth remembering |
+| **Applied to your note** | If it's an action item: what doing this actually looks like in practice. If it's a reminder: when this insight is most relevant to recall |
+
+The lens is clearly labeled AI-generated. It never modifies your note. It is generated fresh each time and not stored — your note stays exactly as you wrote it.
+
+---
+
+### Why this fits the philosophy
+
+- **Zero write-time friction** — nothing changes about how you capture.
+- **On demand, not automatic** — the feed card looks the same; the lens only appears when you ask.
+- **Uses what you already gave it** — no extra metadata required. Book title + author + your words is enough.
+- **Opt-in via API key** — works via Claude API. If no key is configured, the "?" button is hidden. No degraded experience, just the feature absent.
+
+---
+
+### Setup
+
+Add a Claude API key in Settings. The key is stored only in the device's local storage and never sent anywhere except the Anthropic API.
+
+---
 
 ## Out of Scope (v1)
 
 - Social / sharing features
 - Highlight import from Kindle / Readwise
-- AI-generated book summaries or auto-written notes
+- AI writing notes for you, summarizing books, or rewriting your words
+- AI features beyond the Context Lens (cross-book connections, weekly synthesis, etc.)
 - Native Android/iOS app
 - Multi-device sync (cloud)
 - Tags or search (add after library exceeds ~50 books)
@@ -286,10 +271,9 @@ These are explicitly deferred to keep v1 shippable and the habit-loop tight.
 | **M2 — Feed** | Home carousel with color-themed cards, rotation algorithm, quick-actions |
 | **M3 — PWA** | Install prompt, service worker, offline mode, `/widget` route |
 | **M4 — Gamification** | Streak calendar (book-colored dots), daily notification |
-| **M5 — AI Tier 1** | Note type suggestion, vague action nudge, book recall helper |
-| **M6 — AI Tier 2** | Cross-book connections, weekly synthesis, stale action item check-in |
-| **M7 — Polish** | Animations, empty states, onboarding, semantic search |
-| **M8 — Sync (optional)** | Cloud backup via Supabase |
+| **M5 — AI Context Lens** | On-demand context explanation for any note card, Claude API key setup in Settings |
+| **M6 — Polish** | Animations, empty states, onboarding flow |
+| **M7 — Sync (optional)** | Cloud backup via Supabase |
 
 ---
 
@@ -297,6 +281,6 @@ These are explicitly deferred to keep v1 shippable and the habit-loop tight.
 
 1. **One thumb, one minute** — every interaction must be completable with one hand on a phone in under 60 seconds.
 2. **Nothing to configure before you start** — no account, no setup wizard.
-3. **Your words, not ours** — the app surfaces your notes verbatim. AI assists capture and reflection; it never rewrites or replaces what you wrote.
+3. **Your words, not ours** — the app surfaces your notes verbatim. AI only adds context on demand; it never rewrites or replaces what you wrote.
 4. **Earn the notification** — only one push notification per day, only if the user set it up themselves.
 5. **Data belongs to you** — export to JSON at any time. No lock-in.
