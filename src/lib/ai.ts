@@ -40,7 +40,8 @@ Note: "${note.content}"${isRetry ? '\n\nProvide a distinctly different angle fro
   }
 
   const data = await res.json();
-  const parsed = JSON.parse(data.content[0].text);
+  const raw = (data.content[0].text as string).replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/,'').trim();
+  const parsed = JSON.parse(raw);
 
   const ctx: NoteContext = {
     id: uuid(),
