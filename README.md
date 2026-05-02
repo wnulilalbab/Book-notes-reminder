@@ -105,6 +105,18 @@ A full-screen calendar view showing:
 | Daily reminder notification time | 20:00 |
 | Streak grace days | 2 of 7 |
 | Theme | System (light / dark) |
+| Claude API key | — |
+| AI model | Haiku (fastest / cheapest) |
+
+**AI model choices:**
+
+| Model | Speed | Cost | Best for |
+|---|---|---|---|
+| **Claude Haiku** | Fast | Lowest | Default — good enough for context generation, near-instant |
+| **Claude Sonnet** | Medium | Medium | Richer, more nuanced interpretations |
+| **Claude Opus** | Slower | Highest | Deep reasoning on complex or dense notes |
+
+The model setting only matters when an API call is actually made (first open of a note's Context Lens, or requesting a new interpretation). Cached results are unaffected by changing the model.
 
 ---
 
@@ -273,6 +285,46 @@ Add a Claude API key in Settings. The key is stored only in the device's local s
 
 ---
 
+## Deployment — GitHub Pages
+
+The app is a fully static PWA (no server-side rendering needed) and is deployed automatically to GitHub Pages on every push to `main`.
+
+**Live URL:** `https://<username>.github.io/book-notes-reminder/`
+
+### CI workflow (`.github/workflows/deploy.yml`)
+
+1. Trigger: push to `main`
+2. Install dependencies
+3. Run `npm run build` — outputs static files to `dist/`
+4. Deploy `dist/` to the `gh-pages` branch via `actions/deploy-pages`
+
+No manual steps needed after initial setup. The GitHub Pages source must be set to the `gh-pages` branch in the repository settings once.
+
+---
+
+## Versioning
+
+The app uses **semantic versioning** — `x.y.z` — stored in `package.json` and displayed in the Settings screen footer.
+
+| Segment | When it bumps | How |
+|---|---|---|
+| **x** — Major | Breaking changes (data model migration, full redesign) | Manual only — never triggered automatically |
+| **y** — Minor | A feature is added or changed | Auto-bumped by CI when a PR labeled `feature` or `enhancement` merges to `main` |
+| **z** — Patch | A bug is reported and fixed | Auto-bumped by CI when a PR labeled `bug` or `fix` merges to `main` |
+
+### How CI determines the bump
+
+The bump workflow runs after the deploy workflow on every merge to `main`. It reads the **labels** of the merged PR:
+
+- Label `feature` or `enhancement` → `npm version minor`
+- Label `bug` or `fix` → `npm version patch`
+- No matching label → no bump (used for docs, chores, refactors)
+- Label `major` → `npm version major` (manual escalation for breaking changes)
+
+After bumping, CI commits the updated `package.json`, creates a git tag (`v1.2.3`), and pushes both back to `main`. The tag is the source of truth for releases.
+
+---
+
 ## Out of Scope (v1)
 
 - Social / sharing features
@@ -302,11 +354,11 @@ These are explicitly deferred to keep v1 shippable and the habit-loop tight.
 
 | Phase | Scope |
 |---|---|
-| **M1 — Core** | Book CRUD (with color picker), Note CRUD, local IndexedDB storage |
+| **M1 — Core** | Book CRUD (with color picker), Note CRUD, local IndexedDB storage, CI deploy to GitHub Pages, versioning workflow |
 | **M2 — Feed** | Home carousel with color-themed cards, rotation algorithm, quick-actions |
 | **M3 — PWA** | Install prompt, service worker, offline mode, `/widget` route |
 | **M4 — Gamification** | Streak calendar (book-colored dots), daily notification |
-| **M5 — AI Context Lens** | On-demand context explanation for any note card, Claude API key setup in Settings |
+| **M5 — AI Context Lens** | On-demand context explanation, model selector in Settings, Claude API key setup |
 | **M6 — Polish** | Animations, empty states, onboarding flow |
 | **M7 — Sync (optional)** | Cloud backup via Supabase |
 
