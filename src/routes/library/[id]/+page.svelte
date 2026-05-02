@@ -3,19 +3,25 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { getBook, getNotesByBook, saveBook, deleteNote, saveNote } from '$lib/db';
+  import { getBook, getNotesByBook, saveBook, deleteNote, saveNote, getSettings } from '$lib/db';
   import { getColorMeta } from '$lib/colors';
-  import type { Book, Note } from '$lib/types';
+  import ContextLens from '$lib/ContextLens.svelte';
+  import type { Book, Note, AppSettings } from '$lib/types';
 
   let book: Book | undefined;
   let notes: Note[] = [];
   let loading = true;
+  let settings: AppSettings | null = null;
+  let lensNote: Note | null = null;
 
   $: id = $page.params.id;
 
   onMount(async () => {
     if (!id) { goto(base + '/library'); return; }
-    [book, notes] = await Promise.all([getBook(id), getNotesByBook(id)]);
+    [[book, notes], settings] = await Promise.all([
+      Promise.all([getBook(id), getNotesByBook(id)]),
+      getSettings(),
+    ]);
     if (!book) goto(base + '/library');
     loading = false;
   });
@@ -110,6 +116,13 @@
                     <span class="text-xs text-stone-400">{note.type === 'action_item' ? 'Action' : 'Reminder'}</span>
                     <span class="text-stone-200">·</span>
                     <span class="text-xs text-stone-400">{new Date(note.createdAt).toLocaleDateString()}</span>
+                    {#if settings?.claudeApiKey}
+                      <button
+                        on:click={() => (lensNote = note)}
+                        class="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-xs font-bold text-stone-500 hover:bg-stone-200 transition-colors"
+                        aria-label="Context Lens"
+                      >?</button>
+                    {/if}
                   </div>
                 </div>
                 <button
@@ -150,4 +163,14 @@
       {/if}
     {/if}
   </div>
+{/if}
+
+{#if lensNote && book && settings}
+  <ContextLens
+    note={lensNote}
+    {book}
+    apiKey={settings.claudeApiKey}
+    modelId={settings.aiModel}
+    onClose={() => (lensNote = null)}
+  />
 {/if}

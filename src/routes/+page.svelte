@@ -2,24 +2,35 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { getNotes, getBooks } from '$lib/db';
+  import { getNotes, getBooks, getSettings } from '$lib/db';
   import { buildDailyFeed } from '$lib/feed';
   import { getColorMeta } from '$lib/colors';
-  import type { Note, Book } from '$lib/types';
+  import ContextLens from '$lib/ContextLens.svelte';
+  import type { Note, Book, AppSettings } from '$lib/types';
 
   let notes: Note[] = [];
   let books: Map<string, Book> = new Map();
   let feed: Note[] = [];
   let cardIndex = 0;
   let loading = true;
+  let settings: AppSettings | null = null;
+
+  let lensNote: Note | null = null;
+  let lensBook: Book | null = null;
 
   onMount(async () => {
-    const [allNotes, allBooks] = await Promise.all([getNotes(), getBooks()]);
+    const [allNotes, allBooks, s] = await Promise.all([getNotes(), getBooks(), getSettings()]);
     books = new Map(allBooks.map(b => [b.id, b]));
     notes = allNotes;
-    feed = buildDailyFeed(allNotes, 6);
+    feed = buildDailyFeed(allNotes, s.cardsPerDay);
+    settings = s;
     loading = false;
   });
+
+  function openLens(note: Note) {
+    lensNote = note;
+    lensBook = books.get(note.bookId) ?? null;
+  }
 
   function prev() { if (cardIndex > 0) cardIndex--; }
   function next() { if (cardIndex < feed.length - 1) cardIndex++; }
@@ -79,13 +90,22 @@
           class="card min-h-56 transition-all duration-300"
           style="background-color: {colorMeta.value}; color: {colorMeta.text};"
         >
-          <!-- Type badge -->
-          <span
-            class="mb-4 inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
-            style="background-color: {colorMeta.badge}20; color: {colorMeta.badge};"
-          >
-            {current.type === 'action_item' ? 'Action' : 'Reminder'}
-          </span>
+          <div class="mb-4 flex items-center justify-between">
+            <span
+              class="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+              style="background-color: {colorMeta.badge}20; color: {colorMeta.badge};"
+            >
+              {current.type === 'action_item' ? 'Action' : 'Reminder'}
+            </span>
+            {#if settings?.claudeApiKey}
+              <button
+                on:click|stopPropagation={() => openLens(current)}
+                class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"
+                style="background-color: {colorMeta.badge}20; color: {colorMeta.badge};"
+                aria-label="Context Lens"
+              >?</button>
+            {/if}
+          </div>
 
           <p class="mb-6 text-lg font-medium leading-relaxed">{current.content}</p>
 
@@ -138,3 +158,13 @@
     </div>
   {/if}
 </div>
+
+{#if lensNote && lensBook && settings}
+  <ContextLens
+    note={lensNote}
+    book={lensBook}
+    apiKey={settings.claudeApiKey}
+    modelId={settings.aiModel}
+    onClose={() => { lensNote = null; lensBook = null; }}
+  />
+{/if}
