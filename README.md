@@ -45,6 +45,12 @@ Someone who reads non-fiction regularly, wants to apply what they read, and know
 ### 1. Book Library
 
 - Add a book: title (required), author (optional), a short personal context note ("why I read this", optional).
+- **Book color** — user picks one of ~12 curated colors when creating or editing a book. The color propagates everywhere the book appears:
+  - Feed cards for that book use the color as background (with auto-contrasted text).
+  - The book detail page uses the color as a full-bleed header / hero band.
+  - Library list shows a colored left-strip per book.
+  - Streak calendar dots are colored by which book the note came from, so you can see reading patterns at a glance.
+- A default color is auto-assigned on creation (rotates through the palette) so the user never has to choose before saving.
 - List view of all books sorted by most recently updated.
 - Tap a book to see all its notes.
 - Archive a book (hide from feed without deleting).
@@ -69,7 +75,7 @@ Adding a note should take no more than 3 taps / keystrokes from the home screen.
   - Action items that are not yet "done" are weighted higher.
   - Notes from books read longer ago are weighted higher (counteract recency bias).
 - Cards auto-refresh every **24 hours** (new selection each day).
-- Each card shows: note content, book title, note type badge (`reminder` / `action`).
+- Each card shows: note content, book title, note type badge (`reminder` / `action`). The card background uses the book's chosen color.
 - Quick actions on a card: **Snooze** (skip for 7 days), **Mark done** (action items only), **Edit**.
 - Swipe left/right between cards (touch and keyboard arrow support).
 
@@ -166,7 +172,7 @@ interface Book {
   title: string;
   author?: string;
   context?: string;     // "why I read this"
-  coverColor: string;   // hex, auto-assigned
+  coverColor: string;   // hex; user-chosen from palette, auto-assigned on create
   createdAt: number;    // timestamp
   updatedAt: number;
   archived: boolean;
@@ -191,11 +197,68 @@ interface DailyLog {
 
 ---
 
+## AI Features
+
+AI in this app has one job: **help you remember and apply what you read**. It never writes notes for you or summarizes books — that processing is yours to do, and it's where the real value is.
+
+All AI features are opt-in, clearly labeled, and work via a configurable API key (Claude API). They degrade gracefully to manual mode if no key is set.
+
+---
+
+### Tier 1 — Low friction, high value (M5)
+
+#### Note type auto-suggestion
+As you type a note, AI reads the content and highlights whether it sounds like a **reminder** ("always negotiate in writing") or an **action item** ("set a weekly review on Sundays"). You can accept or ignore the suggestion. Saves a tap and subtly trains better note habits.
+
+#### Vague action item nudge
+When you save an action item that's broad or abstract ("be more focused"), AI asks a single follow-up: *"Can you make this more specific — what would doing this look like tomorrow?"* It doesn't block saving; it just prompts. Over time this improves note quality without a lesson.
+
+#### Book recall helper
+When adding a book you already read, AI offers a brief neutral description of the book's core premise — 2 sentences, no spoilers of your own insights. Useful if you read it months ago and need a moment to jog your memory before you start capturing notes.
+
+---
+
+### Tier 2 — The differentiating features (M6)
+
+#### Cross-book insight connections
+When you add a note, AI checks your existing library and surfaces related notes from other books — shown as a subtle "Related from [Book]" chip below the new note. Example: you add a note about compounding habits from *Atomic Habits* and the app surfaces your note about patience from *The Psychology of Money*.
+
+This is the feature that makes the whole library feel like a living knowledge base instead of separate silos.
+
+#### Weekly synthesis
+Every Sunday (or after 5+ notes in a week), AI generates a 2–3 sentence personal synthesis based only on notes you added that week. Example: *"This week your notes touched on decision-making under uncertainty and the cost of context-switching. A thread: protecting attention is as important as managing time."*
+
+This is shown as a special card in the feed — clearly AI-generated, dismissible, never stored as a note.
+
+#### Reflection nudge for stale action items
+Action items you haven't marked done after 2 weeks get a gentle AI-generated check-in: *"You noted 'start a 5-minute morning journal' 18 days ago — how's that going? Want to adjust it or break it into a smaller step?"*. One prompt per item, not repeated.
+
+---
+
+### Tier 3 — Stretch / future
+
+#### Natural language search
+"Show me everything I noted about sleep" finds relevant notes even if the word "sleep" doesn't appear — using semantic similarity. Valuable once the library exceeds ~30 books.
+
+#### Feed personalization
+AI learns which cards you engage with vs. snooze and adjusts the rotation weights accordingly. Fully local, no data sent anywhere.
+
+---
+
+### What AI will NOT do
+
+| Tempting but wrong | Why |
+|---|---|
+| Summarize the book for you | Your own reading and processing is the point. Pre-made summaries undercut it. |
+| Auto-generate notes from a book title | Same reason. Notes must come from you. |
+| Rewrite or "improve" your notes | Your words are the anchor. Polishing them breaks the recall cue. |
+| Replace the streak/notification system | Behavioral change needs friction reduction, not clever content. |
+
 ## Out of Scope (v1)
 
 - Social / sharing features
 - Highlight import from Kindle / Readwise
-- AI-generated summaries
+- AI-generated book summaries or auto-written notes
 - Native Android/iOS app
 - Multi-device sync (cloud)
 - Tags or search (add after library exceeds ~50 books)
@@ -219,12 +282,14 @@ These are explicitly deferred to keep v1 shippable and the habit-loop tight.
 
 | Phase | Scope |
 |---|---|
-| **M1 — Core** | Book CRUD, Note CRUD, local IndexedDB storage |
-| **M2 — Feed** | Home carousel with rotation algorithm, card quick-actions |
+| **M1 — Core** | Book CRUD (with color picker), Note CRUD, local IndexedDB storage |
+| **M2 — Feed** | Home carousel with color-themed cards, rotation algorithm, quick-actions |
 | **M3 — PWA** | Install prompt, service worker, offline mode, `/widget` route |
-| **M4 — Gamification** | Streak calendar, daily notification |
-| **M5 — Polish** | Animations, dark mode, empty states, onboarding |
-| **M6 — Sync (optional)** | Cloud backup via Supabase |
+| **M4 — Gamification** | Streak calendar (book-colored dots), daily notification |
+| **M5 — AI Tier 1** | Note type suggestion, vague action nudge, book recall helper |
+| **M6 — AI Tier 2** | Cross-book connections, weekly synthesis, stale action item check-in |
+| **M7 — Polish** | Animations, empty states, onboarding, semantic search |
+| **M8 — Sync (optional)** | Cloud backup via Supabase |
 
 ---
 
@@ -232,6 +297,6 @@ These are explicitly deferred to keep v1 shippable and the habit-loop tight.
 
 1. **One thumb, one minute** — every interaction must be completable with one hand on a phone in under 60 seconds.
 2. **Nothing to configure before you start** — no account, no setup wizard.
-3. **Your words, not ours** — the app surfaces your notes verbatim. No AI rewriting.
+3. **Your words, not ours** — the app surfaces your notes verbatim. AI assists capture and reflection; it never rewrites or replaces what you wrote.
 4. **Earn the notification** — only one push notification per day, only if the user set it up themselves.
 5. **Data belongs to you** — export to JSON at any time. No lock-in.
