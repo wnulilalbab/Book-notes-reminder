@@ -14,6 +14,7 @@
   $: id = $page.params.id;
 
   onMount(async () => {
+    if (!id) { goto(base + '/library'); return; }
     [book, notes] = await Promise.all([getBook(id), getNotesByBook(id)]);
     if (!book) goto(base + '/library');
     loading = false;
