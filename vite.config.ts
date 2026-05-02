@@ -7,13 +7,13 @@ export default defineConfig({
     sveltekit(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'favicon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'BookBit',
         short_name: 'BookBit',
         description: 'Capture what matters. Remember what you captured.',
-        theme_color: '#1a1a2e',
-        background_color: '#ffffff',
+        theme_color: '#1C1917',
+        background_color: '#1C1917',
         display: 'standalone',
         start_url: '/',
         icons: [

@@ -1,0 +1,35 @@
+import sharp from 'sharp';
+
+const svg = `<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#1C1917"/>
+
+  <!-- Left page of open book -->
+  <path d="M138 176 C168 169 222 165 252 165 L252 352 C222 352 168 356 138 349 Z"
+        fill="#F5EFE6" opacity="0.92"/>
+
+  <!-- Right page of open book -->
+  <path d="M374 176 C344 169 290 165 260 165 L260 352 C290 352 344 356 374 349 Z"
+        fill="#EDE6DC"/>
+
+  <!-- Spine -->
+  <rect x="249" y="161" width="14" height="195" rx="7" fill="#D4C9BA"/>
+
+  <!-- Text lines on left page -->
+  <rect x="162" y="218" width="72" height="8" rx="4" fill="#C5BAB0" opacity="0.85"/>
+  <rect x="162" y="236" width="58" height="8" rx="4" fill="#C5BAB0" opacity="0.85"/>
+  <rect x="162" y="254" width="66" height="8" rx="4" fill="#C5BAB0" opacity="0.85"/>
+  <rect x="162" y="272" width="50" height="8" rx="4" fill="#C5BAB0" opacity="0.85"/>
+
+  <!-- The "bit" — glowing amber circle on right page -->
+  <circle cx="318" cy="254" r="52" fill="#92400E" opacity="0.25"/>
+  <circle cx="318" cy="254" r="40" fill="#F59E0B"/>
+  <circle cx="318" cy="254" r="26" fill="#FCD34D"/>
+  <circle cx="318" cy="254" r="13" fill="#FEF3C7"/>
+</svg>`;
+
+await sharp(Buffer.from(svg)).resize(512, 512).png().toFile('static/icon-512.png');
+await sharp(Buffer.from(svg)).resize(192, 192).png().toFile('static/icon-192.png');
+await sharp(Buffer.from(svg)).resize(32, 32).png().toFile('static/favicon.png');
+
+console.log('Icons generated: icon-512.png, icon-192.png, favicon.png');
