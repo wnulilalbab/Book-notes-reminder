@@ -55,12 +55,16 @@ export function selectFeedNotes(notes: Note[], count: number): Note[] {
 
 export function buildDailyFeed(notes: Note[], count: number): Note[] {
   const today = todayStr();
-  const cachedIds = getFeedNoteIds(today);
+  const now = Date.now();
+  const available = notes.filter(n => !n.done && !(n.snoozedUntil && n.snoozedUntil > now));
+  const target = Math.min(count, available.length);
 
+  const cachedIds = getFeedNoteIds(today);
   if (cachedIds) {
     const idSet = new Set(cachedIds);
     const cached = notes.filter(n => idSet.has(n.id) && !n.done);
-    if (cached.length > 0) return cached;
+    // Use cache only when it already fills the feed (or covers all available notes)
+    if (cached.length > 0 && cached.length >= target) return cached;
   }
 
   const selected = selectFeedNotes(notes, count);
