@@ -62,7 +62,7 @@
 
 <!-- Backdrop -->
 <button
-  class="fixed inset-0 z-40 bg-black/50"
+  class="fixed inset-0 z-[60] bg-black/50"
   on:click={onClose}
   aria-label="Close"
   tabindex="-1"
@@ -70,11 +70,11 @@
 
 <!-- Sheet -->
 <div
-  class="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white shadow-2xl"
+  class="fixed bottom-0 left-0 right-0 z-[70] max-h-[90vh] overflow-y-auto rounded-t-3xl bg-white shadow-2xl"
   role="dialog"
   aria-modal="true"
 >
-  <div class="mx-auto max-w-md px-5 pb-10 pt-5">
+  <div class="mx-auto max-w-md px-5 pb-28 pt-5">
     <!-- Handle -->
     <div class="mb-4 flex justify-center">
       <div class="h-1 w-10 rounded-full bg-stone-200"></div>
