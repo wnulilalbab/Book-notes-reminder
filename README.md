@@ -193,6 +193,15 @@ interface DailyLog {
   date: string;         // "YYYY-MM-DD"
   noteIds: string[];    // notes added this day
 }
+
+interface NoteContext {
+  id: string;           // uuid
+  noteId: string;
+  meaning: string;      // "What this means"
+  whyItMatters: string; // "Why it matters"
+  applied: string;      // "Applied to your note"
+  generatedAt: number;  // timestamp
+}
 ```
 
 ---
@@ -209,9 +218,9 @@ Write mode stays completely unchanged — no extra fields, no prompts, no fricti
 
 ### How it works
 
-On any note card (in the feed or on the book detail page), a small **"?"** button appears. Tap it and AI generates a **Context Lens** — a short, on-demand explanation using only what's already stored: your note text, the book title, and the author.
+On any note card (in the feed or on the book detail page), a small **"?"** button appears. Tap it to open the Context Lens panel.
 
-The Context Lens shows three things:
+The Context Lens shows three things per interpretation:
 
 | | |
 |---|---|
@@ -219,14 +228,40 @@ The Context Lens shows three things:
 | **Why it matters** | The author's core argument for why this is worth remembering |
 | **Applied to your note** | If it's an action item: what doing this actually looks like in practice. If it's a reminder: when this insight is most relevant to recall |
 
-The lens is clearly labeled AI-generated. It never modifies your note. It is generated fresh each time and not stored — your note stays exactly as you wrote it.
+---
+
+### Caching and multiple interpretations
+
+Because AI is predicting context from a short note, its first guess may not match what you actually meant. The model stores interpretations as an **array** per note in IndexedDB:
+
+**First open (no stored contexts):**
+- API call is made, result stored as the first `NoteContext` entry.
+- Shown immediately.
+
+**Subsequent opens (context already stored):**
+- Most recent interpretation shown by default.
+- No API call made.
+
+**"Try another interpretation" button:**
+- User can request a new interpretation at any time.
+- New API call made with a prompt variant that asks for a different angle.
+- Result appended to the array — previous interpretations are never overwritten.
+
+**Managing interpretations:**
+- If more than one exists, a counter shows **"1 of N interpretations"** with prev/next arrows to browse all of them.
+- Each interpretation has a **delete (×) button** — user removes ones that feel wrong or irrelevant.
+- Deleting does not trigger a new API call. The remaining interpretations stay.
+
+**Result:** after a few visits to the same note, the user has curated a small set of interpretations that actually resonate — and no API is ever called again unless they explicitly ask.
 
 ---
 
 ### Why this fits the philosophy
 
 - **Zero write-time friction** — nothing changes about how you capture.
-- **On demand, not automatic** — the feed card looks the same; the lens only appears when you ask.
+- **On demand, not automatic** — the feed card looks the same; the panel only opens when you tap "?".
+- **API calls are earned, not automatic** — first open pays the cost once; every revisit is free.
+- **User curates, AI suggests** — the user is always in control of what stays.
 - **Uses what you already gave it** — no extra metadata required. Book title + author + your words is enough.
 - **Opt-in via API key** — works via Claude API. If no key is configured, the "?" button is hidden. No degraded experience, just the feature absent.
 
