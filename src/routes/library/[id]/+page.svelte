@@ -142,6 +142,15 @@
                     {/if}
                   </div>
                 </div>
+                <a
+                  href="{base}/add-note?edit={note.id}"
+                  class="flex-shrink-0 p-1 text-stone-300 hover:text-stone-600 transition-colors"
+                  aria-label="Edit note"
+                >
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
+                  </svg>
+                </a>
                 <button
                   class="flex-shrink-0 p-1 text-stone-300 hover:text-red-400 transition-colors"
                   on:click={() => removeNote(note.id)}

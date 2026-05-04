@@ -112,6 +112,16 @@
                   aria-label="Context Lens"
                 >?</button>
               {/if}
+              <a
+                href="{base}/add-note?edit={current.id}"
+                class="flex h-7 w-7 items-center justify-center rounded-full opacity-40 hover:opacity-80 transition-opacity"
+                style="background-color: {colorMeta.badge}20; color: {colorMeta.badge};"
+                aria-label="Edit note"
+              >
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.5-6.5a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z" />
+                </svg>
+              </a>
               <button
                 on:click|stopPropagation={() => deleteCard(current)}
                 class="flex h-7 w-7 items-center justify-center rounded-full opacity-40 hover:opacity-80 transition-opacity"

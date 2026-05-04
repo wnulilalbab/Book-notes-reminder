@@ -13,6 +13,7 @@
   let type: 'reminder' | 'action_item' = 'reminder';
   let saving = false;
   let editId: string | null = null;
+  let error = '';
 
   onMount(async () => {
     books = (await getBooks()).filter(b => !b.archived);
@@ -38,29 +39,35 @@
   async function save() {
     if (!content.trim() || !selectedBookId) return;
     saving = true;
+    error = '';
 
-    const now = Date.now();
-    const note: Note = {
-      id: editId ?? uuid(),
-      bookId: selectedBookId,
-      content: content.trim(),
-      type,
-      done: false,
-      createdAt: now,
-      updatedAt: now,
-    };
+    try {
+      const now = Date.now();
+      const note: Note = {
+        id: editId ?? uuid(),
+        bookId: selectedBookId,
+        content: content.trim(),
+        type,
+        done: false,
+        createdAt: now,
+        updatedAt: now,
+      };
 
-    if (editId) {
-      const existing = await getNote(editId);
-      if (existing) {
-        note.createdAt = existing.createdAt;
-        note.done = existing.done;
-        note.snoozedUntil = existing.snoozedUntil;
+      if (editId) {
+        const existing = await getNote(editId);
+        if (existing) {
+          note.createdAt = existing.createdAt;
+          note.done = existing.done;
+          note.snoozedUntil = existing.snoozedUntil;
+        }
       }
-    }
 
-    await saveNote(note);
-    goto(base + '/library/' + selectedBookId);
+      await saveNote(note);
+      goto(base + '/library/' + selectedBookId);
+    } catch (e) {
+      error = 'Failed to save. Please try again.';
+      saving = false;
+    }
   }
 
   $: selectedBook = books.find(b => b.id === selectedBookId);
@@ -144,6 +151,10 @@
         </button>
       </div>
     </div>
+
+    {#if error}
+      <p class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
+    {/if}
 
     <button type="submit" class="btn-primary w-full" disabled={saving || !canSave}>
       {saving ? 'Saving…' : editId ? 'Save Changes' : 'Add Note'}
