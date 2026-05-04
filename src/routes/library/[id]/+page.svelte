@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { getBook, getNotesByBook, saveBook, deleteNote, saveNote, getSettings } from '$lib/db';
+  import { getBook, getNotesByBook, saveBook, deleteNote, saveNote, deleteBook, getSettings } from '$lib/db';
   import { getColorMeta } from '$lib/colors';
   import ContextLens from '$lib/ContextLens.svelte';
   import type { Book, Note, AppSettings } from '$lib/types';
@@ -13,6 +13,7 @@
   let loading = true;
   let settings: AppSettings | null = null;
   let lensNote: Note | null = null;
+  let confirmDelete = false;
 
   $: id = $page.params.id;
 
@@ -31,6 +32,12 @@
     book.archived = !book.archived;
     book.updatedAt = Date.now();
     await saveBook(book);
+  }
+
+  async function confirmDeleteBook() {
+    if (!book) return;
+    await deleteBook(book.id);
+    goto(base + '/library');
   }
 
   async function markDone(note: Note) {
@@ -83,6 +90,16 @@
         >
           Edit
         </a>
+        <button
+          on:click={() => (confirmDelete = true)}
+          class="ml-auto flex h-9 w-9 items-center justify-center rounded-full opacity-50 hover:opacity-90 transition-opacity"
+          style="background-color: {colorMeta.badge}20; color: {colorMeta.text};"
+          aria-label="Delete book"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
@@ -162,6 +179,24 @@
         </div>
       {/if}
     {/if}
+  </div>
+{/if}
+
+{#if confirmDelete}
+  <button class="fixed inset-0 z-[60] bg-black/50" on:click={() => (confirmDelete = false)} aria-label="Cancel" tabindex="-1"></button>
+  <div class="fixed bottom-0 left-0 right-0 z-[70] rounded-t-3xl bg-white px-5 pb-10 pt-6 shadow-2xl">
+    <div class="mx-auto max-w-md">
+      <p class="text-lg font-bold text-stone-900">Delete "{book?.title}"?</p>
+      <p class="mt-1 text-sm text-stone-500">This will permanently delete the book and all {notes.length} note{notes.length !== 1 ? 's' : ''}. This cannot be undone.</p>
+      <div class="mt-6 flex gap-3">
+        <button on:click={() => (confirmDelete = false)} class="flex-1 rounded-2xl border border-stone-200 py-3 text-sm font-semibold text-stone-700 active:scale-95 transition-transform">
+          Cancel
+        </button>
+        <button on:click={confirmDeleteBook} class="flex-1 rounded-2xl bg-red-500 py-3 text-sm font-semibold text-white active:scale-95 transition-transform hover:bg-red-600">
+          Delete
+        </button>
+      </div>
+    </div>
   </div>
 {/if}
 

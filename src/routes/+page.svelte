@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { getNotes, getBooks, getSettings } from '$lib/db';
+  import { getNotes, getBooks, getSettings, deleteNote } from '$lib/db';
   import { buildDailyFeed } from '$lib/feed';
   import { getColorMeta } from '$lib/colors';
   import ContextLens from '$lib/ContextLens.svelte';
@@ -30,6 +30,12 @@
   function openLens(note: Note) {
     lensNote = note;
     lensBook = books.get(note.bookId) ?? null;
+  }
+
+  async function deleteCard(note: Note) {
+    await deleteNote(note.id);
+    feed = feed.filter(n => n.id !== note.id);
+    if (cardIndex >= feed.length) cardIndex = Math.max(0, feed.length - 1);
   }
 
   function prev() { if (cardIndex > 0) cardIndex--; }
@@ -97,14 +103,26 @@
             >
               {current.type === 'action_item' ? 'Action' : 'Reminder'}
             </span>
-            {#if settings?.claudeApiKey}
+            <div class="flex items-center gap-1.5">
+              {#if settings?.claudeApiKey}
+                <button
+                  on:click|stopPropagation={() => openLens(current)}
+                  class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"
+                  style="background-color: {colorMeta.badge}20; color: {colorMeta.badge};"
+                  aria-label="Context Lens"
+                >?</button>
+              {/if}
               <button
-                on:click|stopPropagation={() => openLens(current)}
-                class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold opacity-60 hover:opacity-100 transition-opacity"
+                on:click|stopPropagation={() => deleteCard(current)}
+                class="flex h-7 w-7 items-center justify-center rounded-full opacity-40 hover:opacity-80 transition-opacity"
                 style="background-color: {colorMeta.badge}20; color: {colorMeta.badge};"
-                aria-label="Context Lens"
-              >?</button>
-            {/if}
+                aria-label="Delete note"
+              >
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <p class="mb-6 text-lg font-medium leading-relaxed">{current.content}</p>
